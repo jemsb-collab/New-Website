@@ -104,6 +104,9 @@
 *.log
 **/logs/
 
+# App database (seeded locally via `npm run db:seed`)
+server/data/
+
 # Environment and secrets
 **/.env
 **/.env.local
