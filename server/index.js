@@ -21,6 +21,10 @@ app.use('/api/auth', require('./routes/auth'));
 app.use('/api/posts', require('./routes/posts'));
 app.use('/api/categories', require('./routes/categories'));
 app.use('/api/users', require('./routes/users'));
+app.use('/api/marketplace', require('./routes/marketplace'));
+app.use('/api/challenges', require('./routes/challenges'));
+app.use('/api/ai', require('./routes/ai'));
+app.use('/api/activity', require('./routes/activity'));
 app.use('/api/admin', require('./routes/admin'));
 
 app.use('/api', (req, res) => res.status(404).json({ error: 'Not found.' }));

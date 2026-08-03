@@ -4,6 +4,7 @@ import { useAuth } from './AuthContext';
 import { api, initials } from './api';
 import {
   Home, Compass, Bookmark, ShieldCheck, Search, LogOut, User as UserIcon,
+  Store, Sparkles, Trophy,
 } from 'lucide-react';
 import HomePage from './pages/Home';
 import CategoryPage from './pages/Category';
@@ -11,11 +12,18 @@ import PostDetailPage from './pages/PostDetail';
 import LoginPage from './pages/Login';
 import SignupPage from './pages/Signup';
 import ProfilePage from './pages/Profile';
+import MarketplacePage from './pages/Marketplace';
+import MarketplaceDetailPage from './pages/MarketplaceDetail';
+import AIStudioPage from './pages/AIStudio';
+import ChallengesPage from './pages/Challenges';
+import ChallengeDetailPage from './pages/ChallengeDetail';
 import AdminLayout from './pages/admin/AdminLayout';
 import AdminStats from './pages/admin/AdminStats';
 import AdminPosts from './pages/admin/AdminPosts';
 import AdminCategories from './pages/admin/AdminCategories';
 import AdminUsers from './pages/admin/AdminUsers';
+import AdminMarketplace from './pages/admin/AdminMarketplace';
+import AdminAiLooks from './pages/admin/AdminAiLooks';
 import NotFound from './pages/NotFound';
 
 function Header() {
@@ -50,7 +58,9 @@ function Header() {
 
         <nav className="main-nav">
           <Link to="/" className={location.pathname === '/' ? 'active' : ''}>Feed</Link>
-          <Link to="/category/braids" className={location.pathname.startsWith('/category') ? 'active' : ''}>Categories</Link>
+          <Link to="/marketplace" className={location.pathname.startsWith('/marketplace') ? 'active' : ''}><Store size={14} style={{ marginRight: 4, verticalAlign: -2 }} />Marketplace</Link>
+          <Link to="/ai" className={location.pathname.startsWith('/ai') ? 'active' : ''}><Sparkles size={14} style={{ marginRight: 4, verticalAlign: -2 }} />AI Studio</Link>
+          <Link to="/challenges" className={location.pathname.startsWith('/challenges') ? 'active' : ''}><Trophy size={14} style={{ marginRight: 4, verticalAlign: -2 }} />Challenges</Link>
           {user?.role === 'admin' && (
             <Link to="/admin" className={location.pathname.startsWith('/admin') ? 'active' : ''}>
               <ShieldCheck size={15} style={{ marginRight: 4, verticalAlign: -2 }} /> Studio
@@ -93,10 +103,10 @@ function Header() {
               )}
             </div>
           ) : (
-            <div className="header-actions">
-              <Link to="/login" className="btn btn-ghost btn-sm" style={{ color: 'var(--ivory)', borderColor: 'rgba(242,238,227,0.3)' }}>Sign in</Link>
-              <Link to="/signup" className="btn btn-primary btn-sm">Join FM</Link>
-            </div>
+        <div className="header-actions">
+          <Link to="/login" className="btn btn-ghost btn-sm" style={{ color: 'var(--ivory)', borderColor: 'rgba(242,238,227,0.3)' }}>Sign in</Link>
+          <Link to="/signup" className="btn btn-primary btn-sm">Join FM</Link>
+        </div>
           )}
         </div>
       </div>
@@ -119,16 +129,16 @@ function Footer() {
           <div>
             <h5>Explore</h5>
             <Link to="/">Feed</Link>
-            <Link to="/category/long-hair">Long hair</Link>
-            <Link to="/category/curly-hair">Curly hair</Link>
-            <Link to="/category/braids">Braids</Link>
+            <Link to="/marketplace">Hair marketplace</Link>
+            <Link to="/ai">AI Studio</Link>
+            <Link to="/challenges">Challenges</Link>
           </div>
           <div>
             <h5>Studio</h5>
             <Link to="/signup">Join the community</Link>
             <Link to="/login">Member sign in</Link>
-            <Link to="/category/bald">Bald & scalp care</Link>
-            <Link to="/category/perm">Perms & waves</Link>
+            <Link to="/marketplace">Sell your hair</Link>
+            <Link to="/category/very-long-hair">Very long hair</Link>
           </div>
         </div>
         <div className="bottom">
@@ -157,6 +167,11 @@ export default function App() {
         <Route index element={<HomePage />} />
         <Route path="/category/:slug" element={<CategoryPage />} />
         <Route path="/post/:id" element={<PostDetailPage />} />
+        <Route path="/marketplace" element={<MarketplacePage />} />
+        <Route path="/marketplace/:id" element={<MarketplaceDetailPage />} />
+        <Route path="/ai" element={<AIStudioPage />} />
+        <Route path="/challenges" element={<ChallengesPage />} />
+        <Route path="/challenges/:id" element={<ChallengeDetailPage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/signup" element={<SignupPage />} />
         <Route path="/profile" element={<ProfilePage />} />
@@ -167,6 +182,8 @@ export default function App() {
         <Route path="posts" element={<AdminPosts />} />
         <Route path="categories" element={<AdminCategories />} />
         <Route path="users" element={<AdminUsers />} />
+        <Route path="marketplace" element={<AdminMarketplace />} />
+        <Route path="ai" element={<AdminAiLooks />} />
       </Route>
     </Routes>
   );

@@ -1,5 +1,5 @@
 import { Navigate, NavLink, Outlet, Link } from 'react-router-dom';
-import { LayoutDashboard, FileText, Tags, Users, ArrowLeft } from 'lucide-react';
+import { LayoutDashboard, FileText, Tags, Users, Store, Sparkles, ArrowLeft } from 'lucide-react';
 import { useAuth } from '../../AuthContext';
 
 export default function AdminLayout() {
@@ -19,6 +19,8 @@ export default function AdminLayout() {
   const nav = [
     { to: '/admin', label: 'Overview', icon: LayoutDashboard, end: true },
     { to: '/admin/posts', label: 'Entries', icon: FileText },
+    { to: '/admin/marketplace', label: 'Marketplace', icon: Store },
+    { to: '/admin/ai', label: 'AI looks', icon: Sparkles },
     { to: '/admin/categories', label: 'Collections', icon: Tags },
     { to: '/admin/users', label: 'Members', icon: Users },
   ];

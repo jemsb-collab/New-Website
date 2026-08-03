@@ -68,6 +68,10 @@ router.get('/stats', (req, res) => {
       total_likes: one('SELECT COUNT(*) AS n FROM likes'),
       total_comments: one('SELECT COUNT(*) AS n FROM comments'),
       total_saves: one('SELECT COUNT(*) AS n FROM saves'),
+      listings: one('SELECT COUNT(*) AS n FROM hair_listings'),
+      reviews: one('SELECT COUNT(*) AS n FROM reviews'),
+      challenges: one('SELECT COUNT(*) AS n FROM challenges'),
+      ai_looks: one('SELECT COUNT(*) AS n FROM ai_looks'),
     },
     top_posts: topPosts.map((p) => ({ ...p, like_count: Number(p.like_count), comment_count: Number(p.comment_count) })),
     by_category: byCategory,
@@ -227,6 +231,73 @@ router.delete('/users/:id', (req, res) => {
   if (!user) return res.status(404).json({ error: 'User not found.' });
   if (user.id === req.userId) return res.status(400).json({ error: 'You cannot delete your own account.' });
   db.prepare('DELETE FROM users WHERE id = ?').run(user.id);
+  res.json({ ok: true });
+});
+
+router.get('/listings', (req, res) => {
+  const { search, status } = req.query;
+  const where = [];
+  const params = [];
+  if (status && status !== 'all') { where.push('l.status = ?'); params.push(status); }
+  if (search) { where.push('(l.title LIKE ? OR u.name LIKE ?)'); const t = `%${search}%`; params.push(t, t); }
+  const rows = db.prepare(
+    `SELECT l.*, u.name AS seller_name,
+       (SELECT COUNT(*) FROM listing_comments c WHERE c.listing_id = l.id) AS comment_count,
+       (SELECT COUNT(*) FROM listing_interests i WHERE i.listing_id = l.id) AS interest_count,
+       (SELECT COUNT(*) FROM reviews r WHERE r.listing_id = l.id) AS review_count
+     FROM hair_listings l JOIN users u ON u.id = l.seller_id
+     ${where.length ? 'WHERE ' + where.join(' AND ') : ''}
+     ORDER BY l.created_at DESC LIMIT 500`
+  ).all(...params);
+  res.json({ listings: rows.map((r) => {
+    let photos = []; try { photos = JSON.parse(r.photos || '[]'); } catch { photos = []; }
+    return { ...r, photos, cover: photos[0] || null, price_cents: Number(r.price_cents),
+      comment_count: Number(r.comment_count), interest_count: Number(r.interest_count), review_count: Number(r.review_count) };
+  }) });
+});
+
+router.delete('/listings/:id', (req, res) => {
+  const listing = db.prepare('SELECT id FROM hair_listings WHERE id = ?').get(Number(req.params.id));
+  if (!listing) return res.status(404).json({ error: 'Listing not found.' });
+  db.prepare('DELETE FROM hair_listings WHERE id = ?').run(listing.id);
+  res.json({ ok: true });
+});
+
+router.patch('/listings/:id/status', (req, res) => {
+  const { status } = req.body || {};
+  if (!['active', 'sold', 'removed'].includes(status)) return res.status(400).json({ error: 'Invalid status.' });
+  const listing = db.prepare('SELECT id FROM hair_listings WHERE id = ?').get(Number(req.params.id));
+  if (!listing) return res.status(404).json({ error: 'Listing not found.' });
+  db.prepare('UPDATE hair_listings SET status = ? WHERE id = ?').run(status, listing.id);
+  res.json({ ok: true });
+});
+
+router.get('/ai-looks', (req, res) => {
+  const { status } = req.query;
+  const where = status && status !== 'all' ? 'WHERE a.status = ?' : '';
+  const params = status && status !== 'all' ? [status] : [];
+  const rows = db.prepare(
+    `SELECT a.*, u.name AS created_by_name, c.name AS category_name
+     FROM ai_looks a LEFT JOIN users u ON u.id = a.created_by
+     LEFT JOIN categories c ON c.id = a.category_id
+     ${where} ORDER BY a.created_at DESC LIMIT 500`
+  ).all(...params);
+  res.json({ looks: rows });
+});
+
+router.patch('/ai-looks/:id', (req, res) => {
+  const { status } = req.body || {};
+  if (!['approved', 'pending', 'rejected'].includes(status)) return res.status(400).json({ error: 'Invalid status.' });
+  const look = db.prepare('SELECT id FROM ai_looks WHERE id = ?').get(Number(req.params.id));
+  if (!look) return res.status(404).json({ error: 'AI look not found.' });
+  db.prepare('UPDATE ai_looks SET status = ? WHERE id = ?').run(status, look.id);
+  res.json({ ok: true });
+});
+
+router.delete('/ai-looks/:id', (req, res) => {
+  const look = db.prepare('SELECT id FROM ai_looks WHERE id = ?').get(Number(req.params.id));
+  if (!look) return res.status(404).json({ error: 'AI look not found.' });
+  db.prepare('DELETE FROM ai_looks WHERE id = ?').run(look.id);
   res.json({ ok: true });
 });
 

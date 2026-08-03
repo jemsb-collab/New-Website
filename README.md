@@ -1,9 +1,10 @@
-# Filora Media (FM) — Hair Content Platform
+# Filora Media (FM) — Women's Hair Social Platform
 
-A premium-feeling social platform for hair styling content — long hair, short hair,
-bald, perms, bobs, braids and everything between. **Not** a plain e-commerce
-catalog: it is built as a media brand (feed, likes, comments, saves, category
-follows, share) with no purchase flow for now.
+A premium-feeling social platform for women's hair content — long silky hair,
+bobs, headshaves, very long hair and more, plus a hair **buy/sell marketplace**
+with reviews, community **challenges** and an **AI photo/video studio**.
+Built as a media brand: feed, likes, comments, saves, category follows, share,
+plus a seller marketplace where buyers comment to claim hair and leave reviews.
 
 > Editorial-studio aesthetic: deep pine `#1F2E28`, warm ivory `#F2EEE3`,
 > muted brass `#A9812E`, rust/copper CTA `#9C4B2E`. Fraunces (serif) headings,
@@ -26,12 +27,15 @@ follows, share) with no purchase flow for now.
 client/                 Vite + React SPA
 server/
   index.js              Express app (API + serves client/dist in production)
-  db.js                 node:sqlite schema (payment-ready)
-  seed.js               demo seed (real hair tutorial videos)
+  db.js                 node:sqlite schema (marketplace, challenges, AI looks)
+  seed.js               demo seed (550 posts, 34 listings, 24 AI looks, 5 challenges)
   auth.js               JWT helpers
   lib/media.js          YouTube/Telegram/Drive link parsing
   lib/google.js         Google ID-token verification (JWKS)
-  routes/               auth, posts, categories, users, admin
+  routes/               auth, posts, categories, users, marketplace, challenges,
+                        ai, activity, admin
+  data/hair_photos.json real women's hair videos by category (scraper output)
+  scripts/scrape-hair.js curl-based YouTube scraper (women-only, 50+ per category)
 ```
 
 ## Quick start
@@ -48,12 +52,18 @@ npm run build
 npm start              # http://localhost:3001
 ```
 
+Reseed (drops + recreates the DB from `hair_photos.json`):
+
+```bash
+FORCE=1 node server/seed.js
+```
+
 ## Demo accounts (seeded)
 
-| Role   | Email                | Password     |
-| ------ | -------------------- | ------------ |
-| Admin  | `admin@filora.media` | `password123` |
-| Viewer | `demo1@filora.media` | `password123` |
+| Role   | Email                       | Password     |
+| ------ | --------------------------- | ------------ |
+| Admin  | `admin@filora.media`        | `password123` |
+| Seller | `seller1@filora.media` … `seller14@filora.media` | `password123` |
 
 Change `JWT_SECRET` and the admin password in production.
 
@@ -70,7 +80,30 @@ Change `JWT_SECRET` and the admin password in production.
 | `POST/DELETE /api/categories/:id/follow` | Follow / unfollow a collection |
 | `POST /api/auth/signup` · `POST /api/auth/login` · `GET /api/auth/me` | Accounts |
 | `GET /api/users/me/saves` · `me/follows` · `me/stats` | Profile data |
-| `GET /api/admin/stats` · `/posts` · `/categories` · `/users` | Admin (JWT + `role=admin`) |
+| `GET /api/marketplace` | Hair ads — `search`, `hair_type`, `texture`, `sort`, `status` (active/sold) |
+| `GET /api/marketplace/:id` | Ad detail + buyer comments + seller reviews + seller stats |
+| `POST /api/marketplace` | Post a hair ad (auth) |
+| `POST /api/marketplace/:id/comments` · `/interest` · `/reviews` | Buyer claim / interest / review |
+| `PATCH /api/marketplace/:id/status` | Mark sold / active (seller or admin) |
+| `GET /api/challenges` · `GET /api/challenges/:id` | Community challenges + participants/updates |
+| `POST /api/challenges/:id/join` | Join a challenge |
+| `GET /api/ai/looks` · `GET /api/ai/styles` | AI photo/video studio catalogue |
+| `POST /api/ai/looks/:id/like` | Like an AI look |
+| `GET /api/activity` | Unified community activity feed |
+| `GET /api/admin/stats` · `/posts` · `/categories` · `/users` · `/listings` · `/ai-looks` | Admin (JWT + `role=admin`) |
+
+## Platform sections
+
+- **Feed** — `/` — 550 real women-only hair posts across 11 collections
+  (long silky hair, bob, short bob, half headshave, full headshave, very long
+  hair, Asian/Russian/black/brown/Chinese hair) with a unified activity feed and
+  a "Hot right now" marketplace strip.
+- **Marketplace** — `/marketplace` — hair buy/sell ads with specs, seller panel
+  (mark sold), buyer comments to claim, and mandatory 5/4/3-star positive reviews.
+- **AI Studio** — `/ai` — browse AI photo/video looks, like, generate a preview
+  modal, and submit your own concept.
+- **Challenges** — `/challenges` — join community challenges, see participant
+  updates, earn the badge.
 
 ## Admin / Studio panel
 
@@ -80,6 +113,8 @@ Change `JWT_SECRET` and the admin password in production.
 - **Entries** — search/filter table; create/edit modal (title, category, YouTube/Telegram/Drive links, thumbnail URL, description, premium flag + price, publish toggle).
 - **Collections** — manage categories (name/slug/description).
 - **Members** — search, promote to admin, ban/unban, remove.
+- **Marketplace** — approve/hold/remove ads, mark sold, delete with buyer comments + reviews.
+- **AI looks** — approve/hold/reject AI studio submissions.
 
 ## Google sign-in
 
@@ -94,4 +129,5 @@ The server verifies ID tokens against Google's published JWKS (`server/lib/googl
 ## Notes
 
 - Thumbnails are URL-references (auto-derived from YouTube when empty) — no upload endpoint, consistent with the "external media only" rule.
-- `server/data/filora.db` is created locally and git-ignored; re-seed with `npm run db:seed`.
+- All content is women-only; the scraper (`server/scripts/scrape-hair.js`) filters male/beard keywords and stores 50+ validated videos per category in `server/data/hair_photos.json`.
+- `server/data/filora.db` is created locally and git-ignored; re-seed with `FORCE=1 node server/seed.js`.

@@ -53,3 +53,20 @@ export function initials(name) {
     .join('')
     .toUpperCase();
 }
+
+export function fmtMoney(cents, currency = 'usd') {
+  const amount = (Number(cents) || 0) / 100;
+  try {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: currency.toUpperCase(),
+      maximumFractionDigits: 0,
+    }).format(amount);
+  } catch {
+    return `$${amount}`;
+  }
+}
+
+export function fmtCompact(n) {
+  return new Intl.NumberFormat('en-US', { notation: 'compact', maximumFractionDigits: 1 }).format(n || 0);
+}
